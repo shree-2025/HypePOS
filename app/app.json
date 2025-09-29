@@ -1,0 +1,25 @@
+{
+  "expo": {
+    "name": "Retail POS",
+    "slug": "retail-pos-app",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {},
+    "web": {
+      "bundler": "metro",
+      "favicon": ""
+    },
+    "plugins": [
+      "expo-font"
+    ]
+  }
+}
