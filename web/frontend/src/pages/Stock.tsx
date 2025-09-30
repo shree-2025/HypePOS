@@ -141,6 +141,7 @@ export default function Stock() {
   const [assignItemId, setAssignItemId] = useState('')
   const [assignOutletId, setAssignOutletId] = useState('')
   const [assignQty, setAssignQty] = useState('')
+  const [assignOpen, setAssignOpen] = useState(false)
   const addAssignment = () => {
     const qn = Number(assignQty)
     if (!assignItemId || !assignOutletId || Number.isNaN(qn) || qn <= 0) return
@@ -154,7 +155,17 @@ export default function Stock() {
       <PageHeader
         title="Stock Management"
         subtitle="Add items, manage inventory, and assign stock to outlets."
-        actions={<Button onClick={openAdd}>Add Item</Button>}
+        actions={(
+          <div className="flex gap-2">
+            <Button variant="primary" onClick={openAdd}>Add Item</Button>
+            <Button variant="primary" onClick={() => setAssignOpen(true)}>
+              Assign Stock
+              <span className="ml-2 inline-flex items-center rounded-full bg-teal-600 px-2 py-0.5 text-xs font-semibold text-white">
+                {assignments.length}
+              </span>
+            </Button>
+          </div>
+        )}
       />
       <Card>
         <div className="grid gap-3 md:grid-cols-4">
@@ -168,40 +179,7 @@ export default function Stock() {
         </div>
       </Card>
 
-      {/* Assign to outlet */}
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card title="Assign Stock to Outlet">
-          <div className="grid gap-3">
-            <Select
-              label="Item"
-              value={assignItemId}
-              onChange={(e: any) => setAssignItemId(e.target.value)}
-              options={items.map(i => ({ label: `${i.name} (${i.stockId})`, value: i.id }))}
-            />
-            <Select
-              label="Outlet"
-              value={assignOutletId}
-              onChange={(e: any) => setAssignOutletId(e.target.value)}
-              options={outlets.map(o => ({ label: `${o.name} (${o.code})`, value: o.id }))}
-            />
-            <Input label="Quantity" value={assignQty} onChange={(e: any) => setAssignQty(e.target.value)} placeholder="0" />
-            <div className="flex justify-end">
-              <Button onClick={addAssignment}>Assign</Button>
-            </div>
-          </div>
-        </Card>
-        <Card title="Assigned Stock" className="lg:col-span-2">
-          <SimpleTable
-            columns={[
-              { header: 'Item', key: 'item', render: (r: any) => items.find(i => i.id === r.itemId)?.name || r.itemId },
-              { header: 'Outlet', key: 'outlet', render: (r: any) => outlets.find(o => o.id === r.outletId)?.name || r.outletId },
-              { header: 'Qty', key: 'qty' },
-            ]}
-            data={assignments}
-            keyField="id"
-          />
-        </Card>
-      </div>
+      {/* Assign modal trigger above; inline section removed */}
 
       {/* Add/Edit Modal */}
       {open && (
@@ -258,6 +236,57 @@ export default function Stock() {
                 <Button type="submit">{editingId ? 'Update' : 'Add Item'}</Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Stock Modal */}
+      {assignOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setAssignOpen(false)} />
+          <div className="relative z-50 w-full max-w-4xl rounded-xl bg-white p-5 shadow-soft">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Assign Stock to Outlet</h2>
+                <p className="mt-1 text-sm text-gray-500">Choose an item and outlet, set quantity, and record assignments.</p>
+              </div>
+              <Button variant="outline" onClick={() => setAssignOpen(false)}>Close</Button>
+            </div>
+            <div className="mt-4 grid gap-4 lg:grid-cols-3">
+              <Card title="New Assignment">
+                <div className="grid gap-3">
+                  <Select
+                    label="Item"
+                    value={assignItemId}
+                    onChange={(e: any) => setAssignItemId(e.target.value)}
+                    options={items.map(i => ({ label: `${i.name} (${i.stockId})`, value: i.id }))}
+                  />
+                  <Select
+                    label="Outlet"
+                    value={assignOutletId}
+                    onChange={(e: any) => setAssignOutletId(e.target.value)}
+                    options={outlets.map(o => ({ label: `${o.name} (${o.code})`, value: o.id }))}
+                  />
+                  <Input label="Quantity" value={assignQty} onChange={(e: any) => setAssignQty(e.target.value)} placeholder="0" />
+                  <div className="flex justify-end">
+                    <Button onClick={addAssignment}>Assign</Button>
+                  </div>
+                </div>
+              </Card>
+              <Card title="Assigned Stock" className="lg:col-span-2">
+                <SimpleTable
+                  columns={[
+                    { header: 'Item', key: 'item', render: (r: any) => items.find(i => i.id === r.itemId)?.name || r.itemId },
+                    { header: 'Outlet', key: 'outlet', render: (r: any) => outlets.find(o => o.id === r.outletId)?.name || r.outletId },
+                    { header: 'Qty', key: 'qty' },
+                  ]}
+                  data={assignments}
+                  keyField="id"
+                  stickyHeader
+                  density="compact"
+                />
+              </Card>
+            </div>
           </div>
         </div>
       )}

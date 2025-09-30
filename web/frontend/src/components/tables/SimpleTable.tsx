@@ -12,17 +12,20 @@ type Props<T> = {
   data: T[]
   keyField?: keyof T | string
   className?: string
-  scrollX?: boolean
+  noScroll?: boolean
+  stickyHeader?: boolean
+  density?: 'normal' | 'compact'
 }
 
-export default function SimpleTable<T extends Record<string, any>>({ columns, data, keyField = 'id', className, scrollX = true }: Props<T>) {
+export default function SimpleTable<T extends Record<string, any>>({ columns, data, keyField = 'id', className, noScroll = false, stickyHeader = false, density = 'normal' }: Props<T>) {
+  const pad = density === 'compact' ? 'px-2 py-1' : 'px-3 py-2'
   return (
-    <div className={clsx(scrollX ? 'overflow-x-auto' : 'overflow-x-hidden', 'rounded-lg border border-gray-200 bg-white', className)}>
+    <div className={clsx(noScroll ? 'overflow-visible' : 'overflow-x-auto', 'rounded-lg border border-gray-200 bg-white', className)}>
       <table className="min-w-full text-left text-sm">
-        <thead className="bg-gray-50 text-gray-600">
+        <thead className={clsx('bg-gray-50 text-gray-600', stickyHeader && 'sticky top-0 z-10')}>
           <tr>
             {columns.map(col => (
-              <th key={String(col.key)} className={clsx('px-3 py-2 font-medium', col.className)}>{col.header}</th>
+              <th key={String(col.key)} className={clsx(pad, 'font-medium', col.className)}>{col.header}</th>
             ))}
           </tr>
         </thead>
@@ -30,7 +33,7 @@ export default function SimpleTable<T extends Record<string, any>>({ columns, da
           {data.map((row, idx) => (
             <tr key={String(row[keyField as string] ?? idx)} className="hover:bg-gray-50">
               {columns.map(col => (
-                <td key={String(col.key)} className={clsx('px-3 py-2', col.className)}>
+                <td key={String(col.key)} className={clsx(pad, col.className)}>
                   {col.render ? col.render(row) : String(row[col.key as string] ?? '')}
                 </td>
               ))}
@@ -38,7 +41,7 @@ export default function SimpleTable<T extends Record<string, any>>({ columns, da
           ))}
           {data.length === 0 && (
             <tr>
-              <td colSpan={columns.length} className="px-3 py-6 text-center text-gray-500">No data</td>
+              <td colSpan={columns.length} className={clsx(density === 'compact' ? 'px-2 py-3' : 'px-3 py-6', 'text-center text-gray-500')}>No data</td>
             </tr>
           )}
         </tbody>

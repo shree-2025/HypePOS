@@ -67,6 +67,7 @@ export default function StockTransfer() {
 
   // New transfer modal state
   const [open, setOpen] = useState(false)
+  const [requestsOpen, setRequestsOpen] = useState(false)
   const [fromOutlet, setFromOutlet] = useState('')
   const [toOutlet, setToOutlet] = useState('')
   const [date, setDate] = useState('')
@@ -82,9 +83,9 @@ export default function StockTransfer() {
 
   const columns: Column<Transfer>[] = [
     { header: 'Date', key: 'date' },
-    { header: 'Category', key: 'category', className: 'hidden xl:table-cell' },
+    { header: 'Category', key: 'category', className: 'hidden lg:table-cell' },
     { header: 'Product', key: 'product' },
-    { header: 'SKU', key: 'sku', className: 'hidden lg:table-cell' },
+    { header: 'SKU', key: 'sku' },
     { header: 'Stock ID', key: 'stockId', className: 'hidden xl:table-cell' },
     { header: 'Size', key: 'size', className: 'hidden xl:table-cell' },
     { header: 'Colour', key: 'colour', className: 'hidden xl:table-cell' },
@@ -174,6 +175,12 @@ export default function StockTransfer() {
         subtitle="Handle outlet requests and track transfer status."
         actions={(
           <div className="flex gap-2">
+            <Button variant="primary" onClick={() => setRequestsOpen(true)}>
+              Incoming Requests
+              <span className="ml-2 inline-flex items-center rounded-full bg-teal-600 px-2 py-0.5 text-xs font-semibold text-white">
+                {visibleRequests.length}
+              </span>
+            </Button>
             <Button variant="outline" onClick={exportCsv}>Export CSV</Button>
             <Button variant="primary" onClick={() => setOpen(true)}>New Transfer</Button>
           </div>
@@ -188,35 +195,9 @@ export default function StockTransfer() {
         <StatCard title="Received/Confirmed" value={String(transfers.filter(d => d.status === 'Received' || d.status === 'Confirmed').length)} />
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <Card title="Incoming Requests">
-          <SimpleTable
-            columns={[
-              { header: 'Date', key: 'date' },
-              { header: 'Outlet', key: 'outlet', render: (r: RequestRow) => outlets.find(o => o.id === r.outletId)?.name || r.outletId },
-              { header: 'Category', key: 'category', className: 'hidden xl:table-cell' },
-              { header: 'Product', key: 'product' },
-              { header: 'SKU', key: 'sku', className: 'hidden lg:table-cell' },
-              { header: 'Stock ID', key: 'stockId', className: 'hidden xl:table-cell' },
-              { header: 'Size', key: 'size', className: 'hidden xl:table-cell' },
-              { header: 'Colour', key: 'colour', className: 'hidden xl:table-cell' },
-              { header: 'Qty', key: 'qty', className: 'text-right' },
-              { header: 'Remarks', key: 'remarks', className: 'hidden xl:table-cell' },
-              { header: 'Actions', key: 'actions', render: (r: RequestRow) => (
-                <div className="flex gap-2">
-                  <Button className="px-2 py-1 text-xs" onClick={() => approveAndShip(r)}>Approve & Ship</Button>
-                  <Button className="px-2 py-1 text-xs" variant="warning" onClick={() => rejectRequest(r.id)}>Reject</Button>
-                </div>
-              ) },
-            ]}
-            data={visibleRequests}
-            keyField="id"
-            scrollX={false}
-          />
-          <div className="mt-4 text-xs text-gray-500">HQ availability (mock): {Object.entries(availableStock).map(([k,v]) => `${k}: ${v}`).join(' | ')}</div>
-        </Card>
-        <Card title="Transfers" className="lg:col-span-2">
-          <SimpleTable columns={columns} data={visibleTransfers} scrollX={false} />
+      <div className="space-y-4">
+        <Card title="Transfers">
+          <SimpleTable columns={columns} data={visibleTransfers} noScroll stickyHeader density="compact" />
         </Card>
       </div>
 
@@ -312,6 +293,50 @@ export default function StockTransfer() {
                 <Button type="submit">Create</Button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Incoming Requests Modal */}
+      {requestsOpen && (
+        <div className="fixed inset-0 z-40 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setRequestsOpen(false)} />
+          <div className="relative z-50 w-full max-w-5xl rounded-xl bg-white p-5 shadow-soft">
+            <div className="flex items-start justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Incoming Requests</h2>
+                <p className="mt-1 text-sm text-gray-500">Review outlet requests and approve or reject.</p>
+              </div>
+              <Button variant="outline" onClick={() => setRequestsOpen(false)}>Close</Button>
+            </div>
+            <div className="mt-4">
+              <SimpleTable
+                columns={[
+                  { header: 'Date', key: 'date' },
+                  { header: 'Outlet', key: 'outlet', render: (r: RequestRow) => outlets.find(o => o.id === r.outletId)?.name || r.outletId },
+                  { header: 'Category', key: 'category', className: 'hidden lg:table-cell' },
+                  { header: 'Product', key: 'product' },
+                  { header: 'SKU', key: 'sku' },
+                  { header: 'Stock ID', key: 'stockId', className: 'hidden xl:table-cell' },
+                  { header: 'Size', key: 'size', className: 'hidden xl:table-cell' },
+                  { header: 'Colour', key: 'colour', className: 'hidden xl:table-cell' },
+                  { header: 'Qty', key: 'qty', className: 'text-right' },
+                  { header: 'Remarks', key: 'remarks', className: 'hidden xl:table-cell' },
+                  { header: 'Actions', key: 'actions', render: (r: RequestRow) => (
+                    <div className="flex gap-2">
+                      <Button className="px-2 py-1 text-xs" onClick={() => approveAndShip(r)}>Approve & Ship</Button>
+                      <Button className="px-2 py-1 text-xs" variant="warning" onClick={() => rejectRequest(r.id)}>Reject</Button>
+                    </div>
+                  ) },
+                ]}
+                data={visibleRequests}
+                keyField="id"
+                noScroll
+                stickyHeader
+                density="compact"
+              />
+              <div className="mt-3 text-xs text-gray-500">HQ availability (mock): {Object.entries(availableStock).map(([k,v]) => `${k}: ${v}`).join(' | ')}</div>
+            </div>
           </div>
         </div>
       )}
