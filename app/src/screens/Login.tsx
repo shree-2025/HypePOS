@@ -10,7 +10,7 @@ export default function Login() {
   const [email, setEmail] = React.useState('')
   const [password, setPassword] = React.useState('')
   const [loading, setLoading] = React.useState(false)
-  const [role, setRole] = React.useState<'master' | 'admin'>('master')
+  const [role, setRole] = React.useState<'master' | 'admin' | 'distributor'>('master')
   const [outlet, setOutlet] = React.useState<'HQ' | 'S01' | 'S02'>('HQ')
 
   const onSubmit = async () => {
@@ -31,6 +31,13 @@ export default function Login() {
     setRole('admin')
     setOutlet('S01')
     setEmail('admin@demo.com')
+    setPassword('password')
+  }
+
+  const quickDistributor = () => {
+    setRole('distributor')
+    setOutlet('S01')
+    setEmail('distributor@demo.com')
     setPassword('password')
   }
 
@@ -64,9 +71,12 @@ export default function Login() {
           <TouchableOpacity onPress={() => setRole('admin')} style={[styles.roleBtn, role==='admin' && styles.roleBtnActive]}>
             <Text style={[styles.roleText, role==='admin' && styles.roleTextActive]}>Outlet Admin</Text>
           </TouchableOpacity>
+          <TouchableOpacity onPress={() => setRole('distributor')} style={[styles.roleBtn, role==='distributor' && styles.roleBtnActive]}>
+            <Text style={[styles.roleText, role==='distributor' && styles.roleTextActive]}>Distributor</Text>
+          </TouchableOpacity>
         </View>
 
-        {role === 'admin' && (
+        {(role === 'admin' || role === 'distributor') && (
           <View style={styles.outletRow}>
             {(['HQ','S01','S02'] as const).map((o) => (
               <TouchableOpacity key={o} onPress={() => setOutlet(o)} style={[styles.chip, outlet===o && styles.chipActive]}>
@@ -100,6 +110,7 @@ export default function Login() {
         <View style={styles.demoRow}>
           <Button mode="outlined" onPress={quickMaster}>Demo Master</Button>
           <Button mode="outlined" onPress={quickAdmin}>Demo Admin</Button>
+          <Button mode="outlined" onPress={quickDistributor}>Demo Distributor</Button>
         </View>
       </View>
     </View>

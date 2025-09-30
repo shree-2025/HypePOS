@@ -35,7 +35,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator<MainTabsParamList>();
 
 function MainTabs({ route }: { route: any }) {
-  const role: 'master' | 'admin' | undefined = route?.params?.role;
+  const role: 'master' | 'admin' | 'distributor' | undefined = route?.params?.role;
   return (
     <Tab.Navigator
       screenOptions={{
