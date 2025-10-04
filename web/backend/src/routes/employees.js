@@ -1,12 +1,45 @@
 import express from 'express'
+import jwt from 'jsonwebtoken'
 import { pool, query } from '../db.js'
 
 const router = express.Router()
 
+async function resolveOutletIdFromRequest(req, trxOrPool) {
+  // 1) explicit outletId param
+  let outletId = Number(req.query.outletId || req.body?.outletId)
+  if (outletId) return outletId
+
+  // 2) adminEmail param -> find outlet by manager email
+  const adminEmail = req.query.adminEmail || req.body?.adminEmail
+  if (adminEmail) {
+    const rows = await query(`SELECT id FROM outlets WHERE email = :email LIMIT 1`, { email: String(adminEmail) })
+    if (rows[0]?.id) return Number(rows[0].id)
+  }
+
+  // 3) JWT Authorization -> find outlet by user_id
+  const auth = req.headers['authorization'] || ''
+  const m = auth.match(/^Bearer\s+(.+)$/i)
+  if (m) {
+    try {
+      const token = m[1]
+      const payload = jwt.verify(token, process.env.JWT_SECRET || 'secret')
+      const uid = Number(payload?.sub)
+      if (uid) {
+        const useConn = trxOrPool || pool
+        const [rows] = await useConn.execute(`SELECT id FROM outlets WHERE user_id = :uid LIMIT 1`, { uid })
+        const [[row]] = [rows]
+        if (row?.id) return Number(row.id)
+      }
+    } catch {}
+  }
+
+  return 0
+}
+
 // GET /api/employees?outletId=123
 router.get('/', async (req, res) => {
   try {
-    const outletId = Number(req.query.outletId)
+    const outletId = await resolveOutletIdFromRequest(req)
     if (!outletId) return res.status(400).json({ message: 'outletId is required' })
     const rows = await query(
       `SELECT id, outlet_id AS outletId, name, email, phone, active, created_at AS createdAt, updated_at AS updatedAt
@@ -24,7 +57,8 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
   const conn = await pool.getConnection()
   try {
-    const { outletId, name, email, phone } = req.body || {}
+    let { name, email, phone } = req.body || {}
+    let outletId = await resolveOutletIdFromRequest(req, conn)
     if (!outletId || !name) return res.status(400).json({ message: 'outletId and name are required' })
 
     await conn.beginTransaction()
