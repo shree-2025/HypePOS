@@ -13,18 +13,10 @@ import {
   HiOutlineChat
 } from 'react-icons/hi'
 
-const links = [
-  { to: '/dashboard', label: 'Dashboard' },
-  { to: '/stock', label: 'Stock Management' },
-  { to: '/stock-transfer', label: 'Stock Transfer' },
-  { to: '/messages', label: 'Messages' },
-  { to: '/reports', label: 'Reports' },
-]
-
 export default function Sidebar() {
   const { sidebarOpen, setSidebarOpen, sidebarCollapsed } = useUI()
   const { role, selectedOutlet } = useOrg()
-  const roleLabel = role === 'admin' ? 'Outlet Admin' : role === 'master' ? 'Master' : role === 'distributor' ? 'Distributor' : 'User'
+  const roleLabel = role === 'admin' ? 'Outlet Admin' : role === 'master' ? 'Master' : role === 'distributor' ? 'Distributor' : role === 'salers' ? 'Seller' : 'User'
   const widthClass = sidebarCollapsed ? 'w-16' : 'w-64'
   const iconFor = (name: string) => {
     switch (name) {
@@ -36,6 +28,7 @@ export default function Sidebar() {
         return (<HiOutlineCube size={18} />)
       case 'Stock':
       case 'Stock Management':
+      case 'Item Master':
         return (<HiOutlineCube size={18} />)
       case 'Add Items':
         return (<HiOutlineCube size={18} />)
@@ -53,14 +46,58 @@ export default function Sidebar() {
         return (<HiOutlineOfficeBuilding size={18} />)
       case 'Central Inventory':
         return (<HiOutlineCube size={18} />)
-      case 'Stock Transfer':
+      case 'Supply':
         return (<HiOutlineRefresh size={18} />)
       case 'Reports':
         return (<HiOutlineDocumentReport size={18} />)
+      case 'Total Stock':
+        return (<HiOutlineCube size={18} />)
       default:
         return (<span className="inline-block h-4 w-4 rounded-sm bg-gray-300" />)
     }
   }
+
+  const links = (() => {
+    if (role === 'salers') {
+      return [
+        { to: '/dashboard', label: 'Dashboard' },
+        { to: '/sales', label: 'Sales' },
+        { to: '/total-stock', label: 'Total Stock' },
+        { to: '/messages', label: 'Messages' },
+        { to: '/reports', label: 'Reports' },
+      ]
+    }
+    if (role === 'master') {
+      return [
+        { to: '/dashboard', label: 'Dashboard' },
+        { to: '/outlets', label: 'Outlets' },
+        { to: '/distributors', label: 'Distributors' },
+        { to: '/central-inventory', label: 'Central Inventory' },
+        { to: '/reports', label: 'Reports' },
+        { to: '/messages', label: 'Messages' },
+      ]
+    }
+    // admin/distributor/master default
+    if (role === 'admin') {
+      return [
+        { to: '/dashboard', label: 'Dashboard' },
+        { to: '/stock', label: 'Stock Management' },
+        { to: '/total-stock', label: 'Total Stock' },
+        { to: '/billing', label: 'Sales' },
+        { to: '/stock-transfer', label: 'Supply' },
+        { to: '/employees', label: 'Employees' },
+        { to: '/messages', label: 'Messages' },
+        { to: '/reports', label: 'Reports' },
+      ]
+    }
+    return [
+      { to: '/dashboard', label: 'Dashboard' },
+      { to: '/stock', label: 'Stock Management' },
+      { to: '/stock-transfer', label: 'Supply' },
+      { to: '/messages', label: 'Messages' },
+      { to: '/reports', label: 'Reports' },
+    ]
+  })()
   const content = (
     <div className={`flex h-full ${widthClass} flex-col border-r bg-sidebarBg shadow-soft dark:bg-gray-900 dark:border-gray-800 transition-[width] duration-200`}>
       {/* Logo block */}
@@ -92,12 +129,14 @@ export default function Sidebar() {
       )}
       <nav className="flex-1 px-2 py-2 space-y-1">
         {links
-          .map((l) => (
+          .map((l) => {
+            const displayLabel = (role === 'distributor' && l.to === '/stock') ? 'Item Master' : l.label
+            return (
           <NavLink
             key={l.to}
             to={l.to}
             onClick={() => setSidebarOpen(false)}
-            title={l.label}
+            title={displayLabel}
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-md px-3 py-2 text-sm ${
                 isActive
@@ -106,10 +145,10 @@ export default function Sidebar() {
               }`
             }
           >
-            <span className="text-inherit">{iconFor(l.label)}</span>
-            <span className={`${sidebarCollapsed ? 'hidden' : 'inline-block'}`}>{l.label}</span>
+            <span className="text-inherit">{iconFor(displayLabel)}</span>
+            <span className={`${sidebarCollapsed ? 'hidden' : 'inline-block'}`}>{displayLabel}</span>
           </NavLink>
-        ))}
+        )})}
       </nav>
     </div>
   )

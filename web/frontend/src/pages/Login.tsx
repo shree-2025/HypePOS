@@ -4,16 +4,17 @@ import Button from '@/components/ui/Button'
 import Skeleton from '@/components/feedback/Skeleton'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
+import api from '@/api/axios'
 import { useOrg } from '@/context/org'
 
 export default function Login() {
   const nav = useNavigate()
   const { login, loading } = useAuth()
-  const { setRole, outlets, selectedOutletId, setSelectedOutletId } = useOrg()
+  const { setRole, outlets, setOutlets, selectedOutletId, setSelectedOutletId } = useOrg()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
-  const [roleChoice, setRoleChoice] = useState<'master' | 'admin' | 'distributor'>('master')
+  const [roleChoice, setRoleChoice] = useState<'master' | 'admin' | 'distributor' | 'salers'>('master')
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -22,19 +23,39 @@ export default function Login() {
     if (!password) errs.password = 'Password is required'
     setErrors(errs)
     if (Object.keys(errs).length) return
-    const ok = await login(email, password)
+    const ok = await login(email, password, roleChoice)
     if (ok) {
-      setRole(roleChoice)
-      if (roleChoice === 'admin' && !selectedOutletId) {
+      // Map selected role to org role; for Sales, grant distributor-level access
+      if (roleChoice === 'salers') setRole('distributor')
+      else setRole(roleChoice)
+      // Auto-select outlet for Outlet Admin by email
+      if (roleChoice === 'admin') {
+        try {
+          const { data } = await api.get('/api/outlets', { params: { email } })
+          if (Array.isArray(data) && data.length) {
+            const list = data.map((o: any) => ({ id: String(o.id), name: o.name, code: o.code }))
+            setOutlets(list)
+            setSelectedOutletId(String(list[0].id))
+          }
+        } catch {}
+      } else if ((roleChoice === 'distributor' || roleChoice === 'salers') && !selectedOutletId) {
         setSelectedOutletId(outlets[1]?.id || outlets[0]?.id)
       }
-      nav(roleChoice === 'master' ? '/dashboard' : '/sales')
+      nav(roleChoice === 'salers' ? '/sales' : '/dashboard')
     }
   }
 
-  const quickLogin = async (role: 'master' | 'admin' | 'distributor') => {
+  const quickLogin = async (role: 'master' | 'admin' | 'distributor' | 'salers') => {
     setRoleChoice(role)
-    setEmail(role === 'master' ? 'master@demo.com' : role === 'admin' ? 'admin@demo.com' : 'distributor@demo.com')
+    setEmail(
+      role === 'master'
+        ? 'master@demo.com'
+        : role === 'admin'
+        ? 'admin@demo.com'
+        : role === 'distributor'
+        ? 'distributor@demo.com'
+        : 'sales@demo.com'
+    )
     setPassword('password')
   }
 
@@ -91,27 +112,22 @@ export default function Login() {
               </div>
             ) : (
               <form className="space-y-4" onSubmit={onSubmit}>
-                {/* Role selector */}
-                <div className="grid grid-cols-3 gap-2">
-                  <button type="button" onClick={() => setRoleChoice('master')} className={`rounded-md border px-3 py-2 text-sm ${roleChoice==='master' ? 'border-teal bg-teal/10 text-teal' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Master</button>
-                  <button type="button" onClick={() => setRoleChoice('admin')} className={`rounded-md border px-3 py-2 text-sm ${roleChoice==='admin' ? 'border-teal bg-teal/10 text-teal' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Outlet Admin</button>
-                  <button type="button" onClick={() => setRoleChoice('distributor')} className={`rounded-md border px-3 py-2 text-sm ${roleChoice==='distributor' ? 'border-teal bg-teal/10 text-teal' : 'border-gray-300 text-gray-700 hover:bg-gray-50'}`}>Distributor</button>
+                {/* Role dropdown */}
+                <div>
+                  <label className="mb-1 block text-sm font-medium text-gray-700">Role</label>
+                  <select
+                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-teal focus:outline-none"
+                    value={roleChoice}
+                    onChange={(e) => setRoleChoice(e.target.value as any)}
+                  >
+                    <option value="master">Master Head Office </option>
+                    <option value="distributor">Distributor</option>
+                    <option value="admin">Outlet Admin</option>
+                    <option value="salers">Sales</option>
+                  </select>
                 </div>
 
-                {(roleChoice === 'admin' || roleChoice === 'distributor') && (
-                  <div>
-                    <label className="mb-1 block text-sm font-medium text-gray-700">Outlet</label>
-                    <select
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-teal focus:outline-none"
-                      value={selectedOutletId}
-                      onChange={(e) => setSelectedOutletId(e.target.value)}
-                    >
-                      {outlets.map(o => (
-                        <option key={o.id} value={o.id}>{o.code} — {o.name}</option>
-                      ))}
-                    </select>
-                  </div>
-                )}
+                {/* Outlet selector removed per request; default outlet set automatically on submit */}
 
                 <Input
                   type="email"
@@ -134,10 +150,11 @@ export default function Login() {
                 </Button>
 
                 {/* Demo logins */}
-                <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
+                <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
                   <Button type="button" variant="outline" onClick={() => quickLogin('master')}>Demo Master</Button>
                   <Button type="button" variant="outline" onClick={() => quickLogin('admin')}>Demo Outlet Admin</Button>
                   <Button type="button" variant="outline" onClick={() => quickLogin('distributor')}>Demo Distributor</Button>
+                  <Button type="button" variant="outline" onClick={() => quickLogin('salers')}>Demo Sales</Button>
                 </div>
               </form>
             )}
