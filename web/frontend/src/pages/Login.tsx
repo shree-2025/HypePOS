@@ -6,6 +6,9 @@ import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/useAuth'
 import api from '@/api/axios'
 import { useOrg } from '@/context/org'
+import logo from '@/public/hype_logo.png'
+import Alert from '@/components/ui/Alert'
+import loginBg from '@/public/login bg.jpg'
 
 export default function Login() {
   const nav = useNavigate()
@@ -13,18 +16,41 @@ export default function Login() {
   const { setRole, outlets, setOutlets, selectedOutletId, setSelectedOutletId } = useOrg()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [showPass, setShowPass] = useState(false)
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({})
   const [roleChoice, setRoleChoice] = useState<'master' | 'admin' | 'distributor' | 'salers'>('master')
+  const [formError, setFormError] = useState('')
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const errs: typeof errors = {}
     if (!email) errs.email = 'Email is required'
+    else if (!/^\S+@\S+\.\S+$/.test(email)) errs.email = 'Enter a valid email'
     if (!password) errs.password = 'Password is required'
+    else if (password.length < 6) errs.password = 'Minimum 6 characters'
     setErrors(errs)
     if (Object.keys(errs).length) return
-    const ok = await login(email, password, roleChoice)
-    if (ok) {
+    try {
+      const result = await login(email, password, roleChoice)
+      if (!result.ok) {
+        const msg = String((result as any)?.message || 'Invalid email or password or role')
+        setFormError(msg)
+        const m = msg.toLowerCase()
+        const fieldErrs: typeof errors = {}
+        if (m.includes('email')) fieldErrs.email = 'Invalid email'
+        if (m.includes('password')) fieldErrs.password = 'Invalid password'
+        if (!fieldErrs.email && !fieldErrs.password) {
+          // Generic highlight when server doesn't specify the field
+          fieldErrs.email = ' '
+          fieldErrs.password = ' '
+        }
+        setErrors(fieldErrs)
+        return
+      }
+      // If first login with temporary password, force reset
+      if (result.mustChangePassword) {
+        return nav('/reset-password', { replace: true })
+      }
       // Map selected role to org role; for Sales, grant distributor-level access
       if (roleChoice === 'salers') setRole('distributor')
       else setRole(roleChoice)
@@ -41,68 +67,68 @@ export default function Login() {
       } else if ((roleChoice === 'distributor' || roleChoice === 'salers') && !selectedOutletId) {
         setSelectedOutletId(outlets[1]?.id || outlets[0]?.id)
       }
-      nav(roleChoice === 'salers' ? '/sales' : '/dashboard')
+      nav(roleChoice === 'salers' ? '/sales' : '/dashboard', { replace: true })
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || 'Login failed'
+      setFormError(String(msg))
     }
   }
 
-  const quickLogin = async (role: 'master' | 'admin' | 'distributor' | 'salers') => {
-    setRoleChoice(role)
-    setEmail(
-      role === 'master'
-        ? 'master@demo.com'
-        : role === 'admin'
-        ? 'admin@demo.com'
-        : role === 'distributor'
-        ? 'distributor@demo.com'
-        : 'sales@demo.com'
-    )
-    setPassword('password')
-  }
 
   return (
-    <div className="min-h-screen bg-surface">
-      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-2">
-        {/* Left: brand + side image */}
-        <div className="relative hidden items-center justify-center bg-headerBlue p-8 text-white lg:flex">
-          <div className="absolute inset-0 opacity-10" style={{backgroundImage:'radial-gradient(circle at 20% 20%, #fff 2px, transparent 2px), radial-gradient(circle at 80% 30%, #fff 2px, transparent 2px)', backgroundSize:'60px 60px'}} />
-          <div className="relative z-10 max-w-sm text-center">
-            {/* Brand logo */}
-            <div className="mx-auto mb-6 flex h-14 w-14 items-center justify-center rounded-lg bg-white/10 ring-1 ring-white/30">
-              <svg width="28" height="28" viewBox="0 0 24 24" className="text-white"><path fill="currentColor" d="M3 18c0-2 3-3 6-3s6 1 6 3v2H3v-2Zm9.5-9.7c.8.8 2.2.8 3 0c.8-.9.8-2.2 0-3c-.8-.8-2.2-.8-3 0c-.8.8-.8 2.1 0 3ZM7 10a2 2 0 1 0 0-4a2 2 0 0 0 0 4Z"/></svg>
-            </div>
-            <h1 className="mb-2 text-2xl font-semibold">Retail POS</h1>
-            <p className="text-white/80">Multi-outlet Point of Sale with centralized inventory and reporting.</p>
-            {/* Side image mock (dummy image) */}
-            <img
-              src="https://images.unsplash.com/photo-1519741497674-611481863552?q=80&w=1200&auto=format&fit=crop"
-              alt="Retail illustration"
-              className="mt-8 h-64 w-full rounded-xl object-cover ring-1 ring-white/20"
-              loading="eager"
-            />
-          </div>
-        </div>
-
-        {/* Right: card with image + form */}
-        <div className="flex items-center justify-center p-6">
-          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-soft">
-            {/* Card top: small image */}
-            <div className="mb-5 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="flex h-10 w-10 items-center justify-center rounded-md bg-headerBlue/10">
-                  <svg width="20" height="20" viewBox="0 0 24 24" className="text-headerBlue"><path fill="currentColor" d="M3 18c0-2 3-3 6-3s6 1 6 3v2H3v-2Zm9.5-9.7c.8.8 2.2.8 3 0c.8-.9.8-2.2 0-3c-.8-.8-2.2-.8-3 0c-.8.8-.8 2.1 0 3ZM7 10a2 2 0 1 0 0-4a2 2 0 0 0 0 4Z"/></svg>
-                </div>
-                <div>
-                  <div className="text-xs uppercase tracking-wide text-gray-500">Welcome</div>
-                  <div className="text-base font-semibold text-gray-900">Sign in to continue</div>
-                </div>
+    <div
+      className="relative min-h-screen"
+      style={{
+        backgroundImage: `url(${loginBg})`,
+        backgroundRepeat: 'no-repeat',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+      }}
+    >
+      {/* Decorative background: subtle grid pattern + soft blobs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        {/* Grid pattern */}
+        <div
+          className="absolute inset-0 opacity-40"
+          style={{
+            backgroundImage:
+              "radial-gradient(circle at 1px 1px, rgba(0,0,0,0.04) 1px, transparent 0)",
+            backgroundSize: '22px 22px',
+          }}
+        />
+        {/* Soft blobs */}
+        <div className="absolute -top-28 -left-28 h-80 w-80 rounded-full bg-gradient-to-br from-black/10 to-black/0 blur-3xl" />
+        <div className="absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-gradient-to-tr from-gray-400/20 to-white/0 blur-3xl" />
+        {/* Centered vector halo behind card */}
+        <div
+          className="absolute left-1/2 top-1/2 h-[820px] w-[820px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+          style={{
+            background:
+              'radial-gradient(circle at center, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.04) 25%, rgba(0,0,0,0.02) 45%, transparent 60%)',
+            filter: 'blur(2px)'
+          }}
+        />
+      </div>
+      <div className="relative flex min-h-screen items-center justify-center p-6">
+        {/* Single centered card */}
+        <div className="w-full max-w-md overflow-hidden rounded-2xl border border-gray-200 bg-white/95 shadow-2xl backdrop-blur-sm">
+          {/* Header: black with white text */}
+          <div className="bg-black px-6 py-5 text-white">
+            <div className="flex items-center gap-3">
+              <img src={logo} alt="HypePOS" className="h-16 w-16 object-contain" />
+              <div>
+                <div className="text-[10px] uppercase tracking-wider text-white/70">Welcome</div>
+                <div className="text-xl font-semibold leading-tight">Sign in to HYPEPOS</div>
               </div>
-              {/* decorative card image (dummy) */}
-              <img
-                src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=400&auto=format&fit=crop"
-                alt="Dashboard preview"
-                className="h-12 w-20 rounded-md object-cover"
-              />
             </div>
+          </div>
+          {/* Body */}
+          <div className="p-6">
+            {formError && (
+              <div className="mb-4">
+                <Alert variant="warning" title={formError} />
+              </div>
+            )}
 
             {loading ? (
               <div className="space-y-3">
@@ -116,13 +142,13 @@ export default function Login() {
                 <div>
                   <label className="mb-1 block text-sm font-medium text-gray-700">Role</label>
                   <select
-                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-teal focus:outline-none"
+                    className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm focus:border-black focus:outline-none"
                     value={roleChoice}
                     onChange={(e) => setRoleChoice(e.target.value as any)}
                   >
                     <option value="master">Master Head Office </option>
-                    <option value="distributor">Distributor</option>
-                    <option value="admin">Outlet Admin</option>
+                    <option value="distributor">Distribution Center</option>
+                    <option value="admin">POS</option>
                     <option value="salers">Sales</option>
                   </select>
                 </div>
@@ -138,24 +164,42 @@ export default function Login() {
                   error={errors.email}
                 />
                 <Input
-                  type="password"
+                  type={showPass ? 'text' : 'password'}
                   label="Password"
                   placeholder="••••••••"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   error={errors.password}
+                  rightIcon={
+                    <button
+                      type="button"
+                      onClick={() => setShowPass((v) => !v)}
+                      className="p-1 focus:outline-none focus:ring-2 focus:ring-primary-300 rounded"
+                      aria-label={showPass ? 'Hide password' : 'Show password'}
+                      title={showPass ? 'Hide password' : 'Show password'}
+                    >
+                      {showPass ? (
+                        // Eye off icon
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17.94 17.94A10.94 10.94 0 0 1 12 20C7 20 2.73 16.11 1 12c.62-1.44 1.5-2.75 2.57-3.86" />
+                          <path d="M10.58 10.58a2 2 0 0 0 2.84 2.84" />
+                          <path d="M23 12c-.62 1.44-1.5 2.75-2.57 3.86" />
+                          <path d="M14.12 14.12 20 20" />
+                          <path d="M3 3l5.88 5.88" />
+                        </svg>
+                      ) : (
+                        // Eye icon
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7Z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                      )}
+                    </button>
+                  }
                 />
                 <Button type="submit" className="w-full" loading={loading}>
                   Sign In
                 </Button>
-
-                {/* Demo logins */}
-                <div className="mt-2 grid grid-cols-4 gap-2 text-xs">
-                  <Button type="button" variant="outline" onClick={() => quickLogin('master')}>Demo Master</Button>
-                  <Button type="button" variant="outline" onClick={() => quickLogin('admin')}>Demo Outlet Admin</Button>
-                  <Button type="button" variant="outline" onClick={() => quickLogin('distributor')}>Demo Distributor</Button>
-                  <Button type="button" variant="outline" onClick={() => quickLogin('salers')}>Demo Sales</Button>
-                </div>
               </form>
             )}
           </div>

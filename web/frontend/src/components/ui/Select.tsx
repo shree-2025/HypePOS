@@ -25,8 +25,8 @@ export default function Select({ className, label, error, leftIcon, rightIcon, i
         {leftIcon && <span className="text-gray-400">{leftIcon}</span>}
         <select id={inputId} className="w-full outline-none bg-transparent" {...rest}>
           <option value="" disabled hidden>-- Select --</option>
-          {options.map(opt => (
-            <option key={opt.value} value={opt.value}>{opt.label}</option>
+          {options.map((opt, i) => (
+            <option key={`${opt.value}-${i}`} value={opt.value}>{opt.label}</option>
           ))}
         </select>
         {rightIcon && <span className="text-gray-400">{rightIcon}</span>}

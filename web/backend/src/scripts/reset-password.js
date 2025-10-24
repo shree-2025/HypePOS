@@ -25,7 +25,7 @@ async function main() {
     }
 
     await conn.execute(
-      'UPDATE users SET password_hash = :hash WHERE id = :id',
+      'UPDATE users SET password_hash = :hash, must_change_password = 1 WHERE id = :id',
       { hash, id: user.id }
     )
     console.log(`Password updated for ${email} (${role}).`)

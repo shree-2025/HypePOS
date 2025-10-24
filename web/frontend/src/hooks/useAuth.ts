@@ -21,9 +21,11 @@ export function useAuth() {
       setToken(data.token)
       try { localStorage.setItem('token', data.token) } catch {}
       setRole(data.user?.role ?? role)
-      return true
+      const mustChange = Boolean(data.user?.mustChangePassword)
+      try { localStorage.setItem('mustChangePassword', String(mustChange)) } catch {}
+      return { ok: true as const, mustChangePassword: mustChange }
     } catch (e) {
-      return false
+      return { ok: false as const, mustChangePassword: false }
     } finally {
       setLoading(false)
     }
@@ -42,6 +44,7 @@ export function useAuth() {
   const logout = () => {
     setToken(null)
     try { localStorage.removeItem('token') } catch {}
+    try { localStorage.removeItem('mustChangePassword') } catch {}
     setRole(null)
   }
 

@@ -9,10 +9,10 @@ type Props = ButtonHTMLAttributes<HTMLButtonElement> & {
 export default function Button({ className, loading, disabled, children, variant = 'primary', ...rest }: Props) {
   const base = 'inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed'
   const styles = {
-    primary: 'bg-teal text-white hover:bg-teal/90 focus:ring-teal/40',
+    primary: 'bg-black text-white hover:bg-black/90 focus:ring-black/40',
     warning: 'bg-orange text-white hover:bg-orange/90 focus:ring-orange/40',
-    outline: 'border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 hover:border-gray-400 focus:ring-primary-300',
-    ghost: 'bg-transparent text-gray-800 hover:bg-gray-100 focus:ring-primary-300'
+    outline: 'border border-gray-300 bg-white text-gray-800 hover:bg-gray-50 hover:border-gray-400 focus:ring-black/30',
+    ghost: 'bg-transparent text-gray-800 hover:bg-gray-100 focus:ring-black/30'
   } as const
 
   return (

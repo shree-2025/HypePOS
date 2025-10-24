@@ -19,7 +19,7 @@ export default function Input({ className, label, error, leftIcon, rightIcon, id
           {label}
         </label>
       )}
-      <div className={clsx('flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 focus-within:ring-2 focus-within:ring-primary-300')}
+      <div className={clsx('flex items-center gap-2 rounded-md border border-gray-300 bg-white px-3 py-2 focus-within:ring-2 focus-within:ring-black/30')}
       >
         {leftIcon && <span className="text-gray-400">{leftIcon}</span>}
         <input

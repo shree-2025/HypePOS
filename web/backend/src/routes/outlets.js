@@ -33,6 +33,8 @@ function createTransport() {
     // Allow sending even if there is a self-signed certificate in the chain
     tls: { rejectUnauthorized: false },
   })
+  return transporter
+}
 
 // POST /api/outlets/reset-password
 // Body: { email }
@@ -56,7 +58,7 @@ router.post('/reset-password', async (req, res) => {
     const tempPassword = randomPassword(10)
     const rounds = Number(process.env.BCRYPT_ROUNDS || 10)
     const passwordHash = await bcrypt.hash(tempPassword, rounds)
-    await conn.execute(`UPDATE users SET password_hash = :passwordHash WHERE email = :email`, { passwordHash, email })
+    await conn.execute(`UPDATE users SET password_hash = :passwordHash, must_change_password = 1 WHERE email = :email`, { passwordHash, email })
 
     // Send email
     try {
@@ -89,9 +91,6 @@ router.post('/reset-password', async (req, res) => {
     conn.release()
   }
 })
-
-  return transporter
-}
 
 // GET /api/outlets
 router.get('/', async (req, res) => {
@@ -134,8 +133,8 @@ router.post('/', async (req, res) => {
     tempPassword = randomPassword(10)
     passwordHash = await bcrypt.hash(tempPassword, rounds)
     const [userResult] = await conn.execute(
-      `INSERT INTO users (email, password_hash, role, created_at)
-       VALUES (:email, :passwordHash, 'admin', NOW())
+      `INSERT INTO users (email, password_hash, role, must_change_password, created_at)
+       VALUES (:email, :passwordHash, 'admin', 1, NOW())
        ON DUPLICATE KEY UPDATE id = LAST_INSERT_ID(id)`,
       { email, passwordHash }
     )

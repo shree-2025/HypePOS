@@ -17,7 +17,7 @@ export default function Header() {
     return () => document.removeEventListener('click', onDocClick)
   }, [])
   return (
-    <header className="sticky top-0 z-20 flex h-14 w-full items-center justify-between px-4 shadow-soft bg-headerBlue text-white">
+    <header className="sticky top-0 z-20 flex h-14 w-full items-center justify-between px-4 shadow-soft bg-black text-white">
       <div className="flex items-center gap-3">
         <button
           className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-md border border-white/20 hover:bg-white/10"
@@ -34,14 +34,7 @@ export default function Header() {
         >
           <svg width="18" height="18" viewBox="0 0 24 24" className="text-white"><path fill="currentColor" d="M7 7h2v10H7V7m4 0h2v10h-2V7m4 0h2v10h-2V7Z"/></svg>
         </button>
-        <span className="text-lg font-semibold text-white md:hidden">Retail POS</span>
-        {/* Search input (white for contrast) */}
-        <div className="hidden md:flex items-center gap-3">
-          <div className="flex items-center rounded-md border border-white/20 bg-white/95 px-3 py-1.5">
-            <svg width="18" height="18" viewBox="0 0 24 24" className="mr-2 text-gray-600"><path fill="currentColor" d="m21 19l-5.2-5.2c.6-1 1.2-2.3 1.2-3.8A7 7 0 0 0 10 3a7 7 0 0 0 0 14c1.5 0 2.8-.4 3.8-1.2L19 21l2-2M5 10a5 5 0 0 1 5-5a5 5 0 0 1 5 5a5 5 0 0 1-5 5a5 5 0 0 1-5-5Z"/></svg>
-            <input className="bg-transparent outline-none placeholder:text-gray-400 text-sm text-gray-800" placeholder="Search products, sales..." />
-          </div>
-        </div>
+        {/* brand/logo and search removed per request */}
       </div>
       <div className="flex items-center gap-2 relative" ref={menuRef}>
         <Link to="/support" className="inline-flex">

@@ -25,7 +25,7 @@ export default function SimpleTable<T extends Record<string, any>>({ columns, da
         <thead className={clsx('bg-gray-50 text-gray-600', stickyHeader && 'sticky top-0 z-10')}>
           <tr>
             {columns.map(col => (
-              <th key={String(col.key)} className={clsx(pad, 'font-medium', col.className)}>{col.header}</th>
+              <th key={String(col.key)} className={clsx(pad, 'font-medium whitespace-nowrap', col.className)}>{col.header}</th>
             ))}
           </tr>
         </thead>

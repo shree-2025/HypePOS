@@ -12,8 +12,8 @@ export default function PageHeader({ title, subtitle, actions, className, childr
   return (
     <div className={clsx('mb-4 flex flex-wrap items-center justify-between gap-3', className)}>
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
-        {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+        <h2 className="text-xl font-semibold text-black">{title}</h2>
+        {subtitle && <p className="text-sm text-accent">{subtitle}</p>}
         {children}
       </div>
       {actions && (

@@ -1,6 +1,7 @@
 import { NavLink } from 'react-router-dom'
 import { useUI } from '@/context/ui'
 import { useOrg } from '@/context/org'
+import logo from '@/public/hype_logo.png'
 import {
   HiOutlineHome,
   HiOutlineShoppingCart,
@@ -34,6 +35,14 @@ export default function Sidebar() {
         return (<HiOutlineCube size={18} />)
       case 'Categories':
         return (<HiOutlineTag size={18} />)
+      case 'Colors':
+        return (<HiOutlineTag size={18} />)
+      case 'Brands':
+        return (<HiOutlineTag size={18} />)
+      case 'Employees':
+        return (<HiOutlineOfficeBuilding size={18} />)
+      case 'Billing':
+        return (<HiOutlineShoppingCart size={18} />)
       case 'Promotions':
         return (<HiOutlineTag size={18} />)
       case 'Support':
@@ -82,6 +91,7 @@ export default function Sidebar() {
       return [
         { to: '/dashboard', label: 'Dashboard' },
         { to: '/stock', label: 'Stock Management' },
+        { to: '/accept-items', label: 'Accept Items' },
         { to: '/total-stock', label: 'Total Stock' },
         { to: '/billing', label: 'Sales' },
         { to: '/stock-transfer', label: 'Supply' },
@@ -92,6 +102,8 @@ export default function Sidebar() {
     }
     return [
       { to: '/dashboard', label: 'Dashboard' },
+      { to: '/colours', label: 'Colors' },
+      { to: '/brands', label: 'Brands' },
       { to: '/stock', label: 'Stock Management' },
       { to: '/stock-transfer', label: 'Supply' },
       { to: '/messages', label: 'Messages' },
@@ -99,15 +111,15 @@ export default function Sidebar() {
     ]
   })()
   const content = (
-    <div className={`flex h-full ${widthClass} flex-col border-r bg-sidebarBg shadow-soft dark:bg-gray-900 dark:border-gray-800 transition-[width] duration-200`}>
+    <div className={`flex h-full ${widthClass} flex-col border-r border-black bg-black shadow-soft transition-[width] duration-200`}>
       {/* Logo block */}
-      <div className={`px-4 pt-4 ${sidebarCollapsed ? 'px-2' : ''}`}>
-        <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-md bg-headerBlue/90" />
+      <div className={`px-4 pt-5 ${sidebarCollapsed ? 'px-2' : ''}`}>
+        <div className="flex items-center gap-3">
+          <img src={logo} alt="HypePOS" className="h-16 w-16 object-contain" />
           {!sidebarCollapsed && (
             <div>
-              <div className="text-sm font-semibold text-headerBlue">Retail POS</div>
-              <div className="text-xs text-gray-700/70">Inventory & Billing</div>
+              <div className="text-sm font-semibold text-white">HYPEPOS</div>
+              <div className="text-xs text-gray-400">Inventory & Billing</div>
             </div>
           )}
         </div>
@@ -115,19 +127,19 @@ export default function Sidebar() {
       {/* Org/user block */}
       <div className={`px-4 py-3 ${sidebarCollapsed ? 'px-2' : ''}`}>
         <div className="flex items-center gap-2">
-          <div className="h-6 w-6 rounded-full bg-gray-200" />
+          <div className="h-6 w-6 rounded-full bg-gray-700" />
           {!sidebarCollapsed && (
             <div>
-              <div className="text-sm font-medium text-gray-800">{selectedOutlet?.name || 'Store'}</div>
-              <div className="text-[11px] text-gray-500">{roleLabel}</div>
+              <div className="text-sm font-medium text-white">{(role === 'distributor') ? 'Distribution Center' : roleLabel}</div>
+              <div className="text-[11px] text-gray-400">{selectedOutlet?.name || 'Store'}</div>
             </div>
           )}
         </div>
       </div>
       {!sidebarCollapsed && (
-        <div className="px-4 pb-2 text-[11px] uppercase tracking-wide text-gray-400">Menu</div>
+        <div className="px-4 pb-2 text-[11px] uppercase tracking-wide text-accent">Menu</div>
       )}
-      <nav className="flex-1 px-2 py-2 space-y-1">
+      <nav className="flex-1 px-2 py-3 space-y-1.5">
         {links
           .map((l) => {
             const displayLabel = (role === 'distributor' && l.to === '/stock') ? 'Item Master' : l.label
@@ -140,8 +152,8 @@ export default function Sidebar() {
             className={({ isActive }) =>
               `flex items-center gap-3 rounded-md px-3 py-2 text-sm ${
                 isActive
-                  ? 'bg-white text-headerBlue shadow-soft dark:bg-gray-800'
-                  : 'text-headerBlue hover:bg-white/70 dark:text-gray-200 dark:hover:bg-gray-800'
+                  ? 'bg-white/10 text-white border border-white/20'
+                  : 'text-accent hover:bg-white/10 hover:text-white'
               }`
             }
           >
