@@ -1,4 +1,14 @@
 import mysql from 'mysql2/promise'
+import mysql from 'mysql2/promise'
+import dotenv from 'dotenv'
+dotenv.config()
+
+console.log("🔍 DB CONFIG CHECK:", {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USERNAME,
+  database: process.env.DB_DATABASE,
+  port: process.env.DB_PORT
+})
 
 // Support both DB_* and Laravel-style variables the user added
 const env = process.env
