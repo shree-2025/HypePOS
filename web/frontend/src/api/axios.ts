@@ -1,9 +1,9 @@
 import axios, { AxiosRequestConfig } from 'axios'
 
-export const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.example.com',
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL, // e.g. https://hypepos.onrender.com/api
   timeout: 15000,
-})
+});
 
 // Attach Authorization header if token exists
 api.interceptors.request.use((config: AxiosRequestConfig) => {
