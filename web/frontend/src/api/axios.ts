@@ -1,5 +1,7 @@
 import axios, { AxiosRequestConfig } from 'axios'
 
+console.log('API base:', import.meta.env.VITE_API_BASE_URL)
+
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL, // e.g. https://hypepos.onrender.com/api
   timeout: 15000,
