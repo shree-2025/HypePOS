@@ -1,4 +1,4 @@
-import axios from 'axios'
+import axios, { AxiosRequestConfig } from 'axios'
 
 export const api = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL || 'https://api.example.com',
@@ -6,18 +6,19 @@ export const api = axios.create({
 })
 
 // Attach Authorization header if token exists
-api.interceptors.request.use((config) => {
+api.interceptors.request.use((config: AxiosRequestConfig) => {
   try {
     const token = localStorage.getItem('token')
     if (token) {
-      const headers: any = config.headers
-      if (headers && typeof headers.set === 'function') {
-        headers.set('Authorization', `Bearer ${token}`)
+      if (config.headers && typeof (config.headers as any).set === 'function') {
+        ;(config.headers as any).set('Authorization', `Bearer ${token}`)
       } else {
-        config.headers = { ...(config.headers as any), Authorization: `Bearer ${token}` } as any
+        config.headers = { ...(config.headers as any), Authorization: `Bearer ${token}` }
       }
     }
-  } catch {}
+  } catch (err) {
+    console.error('Interceptor error:', err)
+  }
   return config
 })
 
